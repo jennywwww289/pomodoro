@@ -416,15 +416,14 @@
             animation: ringPulse 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
 
-        /* Tick animation */
+        /* Tick animation — use scale on wrapper to avoid iOS text-ghost */
         @keyframes tickPulse {
-            0%   { opacity: 1; }
-            50%  { opacity: 0.75; }
-            100% { opacity: 1; }
+            0%, 100% { transform: scale(1); }
+            50%       { transform: scale(0.988); }
         }
 
-        .ticking .timer-display {
-            animation: tickPulse 2s ease-in-out infinite;
+        .ticking .timer-center {
+            animation: tickPulse 2.5s ease-in-out infinite;
         }
 
         /* Bottom buttons row */
@@ -1167,17 +1166,15 @@ function start() {
     ring.style.transition = 'none';
     ring.style.strokeDashoffset = -CIRCUMFERENCE;
     ring.classList.remove('ring-pulse');
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-            ring.style.transition = 'stroke-dashoffset 0.75s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.8s ease, filter 0.8s ease';
-            ring.style.strokeDashoffset = targetOffset;
-            ring.classList.add('ring-pulse');
-            setTimeout(() => {
-                ring.classList.remove('ring-pulse');
-                ring.style.transition = 'stroke-dashoffset 1s linear, stroke 0.8s ease, filter 0.8s ease';
-            }, 800);
-        });
-    });
+    // getBoundingClientRect forces a synchronous reflow — more reliable than double-rAF on iOS Safari
+    void ring.getBoundingClientRect();
+    ring.style.transition = 'stroke-dashoffset 0.75s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.8s ease, filter 0.8s ease';
+    ring.style.strokeDashoffset = targetOffset;
+    ring.classList.add('ring-pulse');
+    setTimeout(() => {
+        ring.classList.remove('ring-pulse');
+        ring.style.transition = 'stroke-dashoffset 1s linear, stroke 0.8s ease, filter 0.8s ease';
+    }, 800);
 
     if (timerMode === 'countup') {
         elapsed = 0;
