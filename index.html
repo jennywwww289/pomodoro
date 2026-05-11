@@ -5,17 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>番茄鐘</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Noto+Sans+TC:wght@300;400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Nunito:wght@200;300;400&family=Cormorant+Garamond:wght@300;400;600&family=Noto+Sans+TC:wght@300;400&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0c0b0a;
-            --current-color: #d94535;
-            --current-glow: rgba(217, 69, 53, 0.15);
-            --text: #e8e0d5;
-            --text-dim: rgba(232, 224, 213, 0.4);
-            --text-muted: rgba(232, 224, 213, 0.18);
-            --border: rgba(232, 224, 213, 0.08);
-            --ring-bg: rgba(232, 224, 213, 0.05);
+            --bg: #090806;
+            --current-color: #c8453b;
+            --current-glow: rgba(200, 69, 59, 0.2);
+            --text: #ede6d8;
+            --text-dim: rgba(237, 230, 216, 0.42);
+            --text-muted: rgba(237, 230, 216, 0.22);
+            --border: rgba(237, 230, 216, 0.09);
+            --ring-bg: rgba(237, 230, 216, 0.07);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -45,18 +45,27 @@
             z-index: 50;
         }
 
+        @keyframes ambientPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1);   opacity: 1; }
+            50%       { transform: translate(-50%, -50%) scale(1.08); opacity: 0.8; }
+        }
+
         .ambient {
             position: fixed;
-            width: 700px;
-            height: 700px;
+            width: 860px;
+            height: 860px;
             border-radius: 50%;
-            background: radial-gradient(circle, var(--current-glow) 0%, transparent 65%);
+            background: radial-gradient(circle, var(--current-glow) 0%, transparent 62%);
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             pointer-events: none;
-            transition: background 1.2s ease;
+            transition: background 1.4s ease;
             z-index: 0;
+        }
+
+        body.timer-running .ambient {
+            animation: ambientPulse 4s ease-in-out infinite;
         }
 
         .container {
@@ -70,12 +79,12 @@
         /* Wordmark */
         .wordmark {
             font-family: 'Cormorant Garamond', serif;
-            font-size: 11px;
+            font-size: 11.5px;
             font-weight: 300;
-            letter-spacing: 0.55em;
+            letter-spacing: 0.6em;
             text-transform: uppercase;
-            color: var(--text-muted);
-            margin-bottom: 40px;
+            color: rgba(237, 230, 216, 0.25);
+            margin-bottom: 44px;
         }
 
         /* Mode selector */
@@ -84,21 +93,25 @@
             gap: 0;
             margin-bottom: 52px;
             border: 1px solid var(--border);
-            border-radius: 2px;
+            border-radius: 100px;
             overflow: hidden;
+            background: rgba(12, 11, 10, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
         }
 
         .mode-btn {
-            padding: 9px 22px;
+            padding: 9px 24px;
             background: transparent;
             border: none;
             border-right: 1px solid var(--border);
             color: var(--text-dim);
             font-family: 'Noto Sans TC', sans-serif;
-            font-size: 11px;
-            letter-spacing: 0.12em;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.1em;
             cursor: pointer;
-            transition: all 0.35s ease;
+            transition: all 0.3s ease;
             white-space: nowrap;
         }
 
@@ -107,6 +120,7 @@
         .mode-btn.active {
             background: var(--current-color);
             color: #fff;
+            text-shadow: 0 0 14px rgba(255,255,255,0.3);
         }
 
         .mode-btn:not(.active):hover {
@@ -131,18 +145,18 @@
         .ring-bg {
             fill: none;
             stroke: var(--ring-bg);
-            stroke-width: 1.5;
+            stroke-width: 2;
         }
 
         .ring-progress {
             fill: none;
             stroke: var(--current-color);
-            stroke-width: 1.5;
+            stroke-width: 2;
             stroke-linecap: round;
-            stroke-dasharray: 838.05;
+            stroke-dasharray: 835.66;
             stroke-dashoffset: 0;
             transition: stroke-dashoffset 1s linear, stroke 0.8s ease, filter 0.8s ease;
-            filter: drop-shadow(0 0 8px var(--current-color));
+            filter: drop-shadow(0 0 10px var(--current-color)) drop-shadow(0 0 22px var(--current-glow));
         }
 
         /* subtle inner glow circle */
@@ -150,7 +164,7 @@
             fill: none;
             stroke: var(--current-color);
             stroke-width: 0.5;
-            opacity: 0.12;
+            opacity: 0.1;
             transition: stroke 0.8s ease;
         }
 
@@ -162,16 +176,69 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
+            margin: 16px;
+            border-radius: 50%;
+            background: rgba(9, 8, 6, 0.62);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(237, 230, 216, 0.04);
+            z-index: 2;
+        }
+
+        .hourglass-active .timer-center {
+            background: transparent;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+        }
+
+        .hourglass-active .timer-display {
+            text-shadow: 0 0 20px rgba(0,0,0,1), 0 2px 8px rgba(0,0,0,0.9);
         }
 
         .timer-display {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 76px;
-            font-weight: 300;
-            letter-spacing: -0.03em;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 78px;
+            font-weight: 400;
+            letter-spacing: -0.02em;
             line-height: 1;
             color: var(--text);
-            transition: opacity 0.3s;
+            transition: opacity 0.3s, color 0.3s;
+            cursor: pointer;
+        }
+
+        .timer-display:hover {
+            opacity: 0.7;
+        }
+
+        .timer-display.dragging {
+            opacity: 1;
+            color: var(--current-color);
+            cursor: ns-resize;
+        }
+
+        .timer-tooltip {
+            position: absolute;
+            bottom: -28px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            letter-spacing: 0.1em;
+            color: var(--text-dim);
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        #display:hover ~ .timer-tooltip,
+        .timer-center:hover .timer-tooltip {
+            opacity: 1;
+        }
+
+        .timer-center:has(.dragging) .timer-tooltip,
+        .timer-center.running .timer-tooltip,
+        .timer-center.started .timer-tooltip {
+            opacity: 0 !important;
         }
 
         .timer-label {
@@ -185,52 +252,84 @@
         .controls {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 22px;
             margin-bottom: 52px;
         }
 
         .btn-main {
-            width: 62px;
-            height: 62px;
-            border-radius: 50%;
-            border: 1px solid var(--current-color);
-            background: transparent;
-            color: var(--current-color);
+            padding: 0 36px;
+            height: 54px;
+            border-radius: 100px;
+            border: none;
+            background: linear-gradient(160deg, #fdfbf8 0%, #f0e8de 100%);
+            color: #1a1410;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s ease;
+            gap: 10px;
+            font-family: 'Noto Sans TC', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            transition: all 0.25s ease;
+            white-space: nowrap;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.12), 0 6px 24px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.9);
         }
 
         .btn-main:hover {
-            background: var(--current-color);
-            color: #fff;
-            box-shadow: 0 0 28px var(--current-glow);
+            background: linear-gradient(160deg, #ffffff 0%, #f5ede3 100%);
+            box-shadow: 0 2px 0 rgba(0,0,0,0.1), 0 10px 32px rgba(0,0,0,0.36), inset 0 1px 0 rgba(255,255,255,1);
+            transform: translateY(-2px);
         }
 
-        .btn-main svg { width: 22px; height: 22px; }
+        .btn-main:active { transform: translateY(0); }
+
+        .btn-main svg { width: 13px; height: 13px; flex-shrink: 0; }
 
         .btn-secondary {
-            width: 40px;
-            height: 40px;
+            width: 46px;
+            height: 46px;
             border-radius: 50%;
-            border: 1px solid var(--border);
-            background: transparent;
-            color: var(--text-dim);
+            border: 1px solid rgba(237, 230, 216, 0.22);
+            background: rgba(237, 230, 216, 0.05);
+            color: rgba(237, 230, 216, 0.55);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s ease;
+            transition: all 0.25s ease;
         }
 
         .btn-secondary:hover {
-            border-color: rgba(232,224,213,0.3);
+            border-color: rgba(237, 230, 216, 0.5);
+            background: rgba(237, 230, 216, 0.1);
             color: var(--text);
+            transform: translateY(-1px);
         }
 
+        .btn-secondary:active { transform: translateY(0); }
+
         .btn-secondary svg { width: 15px; height: 15px; }
+
+        .btn-secondary { position: relative; }
+
+        .btn-secondary::after {
+            content: attr(data-tip);
+            position: absolute;
+            bottom: -26px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            letter-spacing: 0.12em;
+            color: var(--text-dim);
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            pointer-events: none;
+        }
+
+        .btn-secondary:hover::after { opacity: 1; }
 
         /* Divider */
         .divider {
@@ -306,6 +405,17 @@
             transition: opacity 0.5s;
         }
 
+        /* Ring start pulse */
+        @keyframes ringPulse {
+            0%   { opacity: 0.2; filter: drop-shadow(0 0 4px var(--current-color)) drop-shadow(0 0 0px var(--current-glow)); }
+            55%  { opacity: 1;   filter: drop-shadow(0 0 14px var(--current-color)) drop-shadow(0 0 30px var(--current-glow)); }
+            100% { opacity: 1;   filter: drop-shadow(0 0 10px var(--current-color)) drop-shadow(0 0 22px var(--current-glow)); }
+        }
+
+        .ring-pulse {
+            animation: ringPulse 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
         /* Tick animation */
         @keyframes tickPulse {
             0%   { opacity: 1; }
@@ -316,48 +426,594 @@
         .ticking .timer-display {
             animation: tickPulse 2s ease-in-out infinite;
         }
+
+        /* Bottom buttons row */
+        .bottom-btns {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-evenly;
+            width: 320px;
+        }
+
+        .mode-toggle-wrap {
+            position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Mode dropdown */
+        .mode-dropdown {
+            position: absolute;
+            bottom: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(18, 16, 14, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 8px;
+            width: 200px;
+            display: none;
+            z-index: 30;
+        }
+
+        .mode-dropdown.open { display: block; }
+
+        .mode-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .mode-option:hover { background: rgba(232,224,213,0.06); }
+
+        .opt-check {
+            font-size: 13px;
+            color: var(--current-color);
+            width: 14px;
+            flex-shrink: 0;
+        }
+
+        .opt-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: 0.05em;
+            margin-bottom: 2px;
+        }
+
+        .opt-desc {
+            font-size: 10px;
+            color: var(--text-dim);
+            letter-spacing: 0.05em;
+        }
+
+        /* Fullscreen button */
+        .fs-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 7px;
+            background: transparent;
+            border: none;
+            color: rgba(237, 230, 216, 0.45);
+            cursor: pointer;
+            padding: 10px 0 0;
+            transition: color 0.25s ease, transform 0.2s ease;
+            flex: 1;
+        }
+
+        .fs-btn:hover { color: rgba(237, 230, 216, 0.9); transform: translateY(-1px); }
+        .fs-btn:active { transform: translateY(0); }
+
+        .fs-btn span {
+            font-family: 'Noto Sans TC', sans-serif;
+            font-size: 10px;
+            letter-spacing: 0.12em;
+            white-space: nowrap;
+        }
+
+        /* Sand flow animation */
+        @keyframes sandFall {
+            0%   { transform: translateY(-2px); opacity: 0; }
+            15%  { opacity: 1; }
+            85%  { opacity: 0.7; }
+            100% { transform: translateY(22px); opacity: 0; }
+        }
+
+        .hg-particle { animation: sandFall 0.7s ease-in infinite; }
+        .hg-particle:nth-child(2)  { animation-delay: 0.14s; }
+        .hg-particle:nth-child(3)  { animation-delay: 0.28s; }
+        .hg-particle:nth-child(4)  { animation-delay: 0.42s; }
+        .hg-particle:nth-child(5)  { animation-delay: 0.56s; }
+        .hg-particle:nth-child(6)  { animation-delay: 0.07s; }
+
+
+        /* Background image support */
+        body {
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .bg-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+        }
+
+        .bg-overlay.visible { opacity: 1; }
+
+        /* Settings button */
+        .settings-btn {
+            position: fixed;
+            top: 22px;
+            left: 22px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: rgba(237, 230, 216, 0.04);
+            color: var(--text-dim);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.25s ease;
+            z-index: 10;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .settings-btn:hover {
+            border-color: rgba(237, 230, 216, 0.3);
+            color: var(--text);
+            background: rgba(237, 230, 216, 0.08);
+        }
+
+        .settings-btn svg { width: 15px; height: 15px; }
+
+        /* Settings overlay backdrop */
+        .settings-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 15;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: none;
+        }
+
+        .settings-overlay.open { display: block; }
+
+        /* Settings panel — centered modal */
+        .settings-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -46%) scale(0.96);
+            width: 340px;
+            max-height: 82vh;
+            overflow-y: auto;
+            background: rgba(10, 9, 8, 0.97);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border: 1px solid rgba(232,224,213,0.1);
+            border-radius: 18px;
+            z-index: 20;
+            padding: 24px 22px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .settings-panel.open {
+            opacity: 1;
+            pointer-events: all;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .settings-title {
+            font-family: 'Noto Sans TC', sans-serif;
+            font-size: 16px;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            color: var(--text);
+        }
+
+        .settings-close {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-dim);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .settings-close:hover { color: var(--text); border-color: rgba(232,224,213,0.3); }
+        .settings-close svg { width: 12px; height: 12px; }
+
+        /* Toggle switch */
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .setting-info { flex: 1; }
+
+        .setting-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: 0.05em;
+            margin-bottom: 3px;
+        }
+
+        .setting-desc {
+            font-size: 10px;
+            color: var(--text-dim);
+            letter-spacing: 0.05em;
+        }
+
+        .toggle {
+            width: 40px;
+            height: 22px;
+            border-radius: 100px;
+            background: rgba(232,224,213,0.15);
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            flex-shrink: 0;
+            margin-left: 12px;
+            border: none;
+        }
+
+        .toggle.on { background: var(--current-color); }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #fff;
+            top: 3px;
+            left: 3px;
+            transition: transform 0.3s ease;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+        }
+
+        .toggle.on::after { transform: translateX(18px); }
+
+        .settings-group {
+            background: rgba(237, 230, 216, 0.03);
+            border: 1px solid rgba(237,230,216,0.08);
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 10px;
+        }
+
+        .settings-group-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        /* Style selector */
+        .style-grid {
+            display: flex;
+            gap: 10px;
+        }
+
+        .style-option {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 10px;
+            border-radius: 8px;
+            border: 1.5px solid rgba(232,224,213,0.1);
+            cursor: pointer;
+            transition: all 0.25s;
+            color: var(--text-dim);
+            font-size: 11px;
+            letter-spacing: 0.08em;
+        }
+
+        .style-option:hover { background: rgba(232,224,213,0.06); color: var(--text); }
+
+        .style-option.active {
+            border-color: var(--current-color);
+            color: var(--current-color);
+            background: rgba(0,0,0,0.2);
+        }
+
+        .upload-btn {
+            margin-top: 10px;
+            width: 100%;
+            padding: 9px;
+            border-radius: 6px;
+            border: 1px dashed rgba(232,224,213,0.2);
+            background: transparent;
+            color: var(--text-dim);
+            font-family: 'Noto Sans TC', sans-serif;
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.25s;
+        }
+
+        .upload-btn:hover {
+            border-color: rgba(232,224,213,0.4);
+            color: var(--text);
+            background: rgba(232,224,213,0.04);
+        }
+
+        .settings-section-label {
+            font-size: 9px;
+            letter-spacing: 0.38em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 14px;
+        }
+
+        /* Background grid */
+        .bg-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .bg-option {
+            border-radius: 6px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border-color 0.25s, transform 0.2s;
+            aspect-ratio: 16 / 10;
+            position: relative;
+        }
+
+        .bg-option:hover { transform: scale(1.03); }
+        .bg-option.selected { border-color: var(--current-color); }
+
+        .bg-option img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .bg-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 4px 8px;
+            background: rgba(0, 0, 0, 0.5);
+            font-size: 10px;
+            letter-spacing: 0.08em;
+            color: #fff;
+        }
+
+        .bg-default-box {
+            width: 100%;
+            height: 100%;
+            background: #1a1817;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            letter-spacing: 0.1em;
+            color: rgba(232,224,213,0.3);
+        }
     </style>
 </head>
 <body>
 
+<div class="bg-overlay" id="bg-overlay"></div>
 <div class="ambient" id="ambient"></div>
 
-<div class="container">
-    <div class="wordmark">番茄鐘 · Pomodoro</div>
+<!-- Settings overlay (close on outside click) -->
+<div class="settings-overlay" id="settings-overlay" onclick="closeSettings()"></div>
 
-    <div class="mode-selector">
-        <button class="mode-btn active" id="btn-work"  onclick="setMode('work')">專注 25'</button>
-        <button class="mode-btn"        id="btn-short" onclick="setMode('short')">短休 5'</button>
-        <button class="mode-btn"        id="btn-long"  onclick="setMode('long')">長休 15'</button>
+<!-- Settings panel -->
+<div class="settings-panel" id="settings-panel">
+    <div class="settings-header">
+        <div class="settings-title">設置</div>
+        <button class="settings-close" onclick="closeSettings()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+        </button>
     </div>
 
+    <!-- 樣式 -->
+    <div class="settings-group">
+        <div class="settings-group-label">計時樣式</div>
+        <div class="style-grid">
+            <div class="style-option active" id="style-ring" onclick="setTimerStyle('ring')">
+                <svg viewBox="0 0 40 40" width="40" height="40">
+                    <circle cx="20" cy="20" r="15" fill="none" stroke="currentColor" stroke-width="2" opacity="0.3"/>
+                    <circle cx="20" cy="20" r="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="94.25" stroke-dashoffset="23" stroke-linecap="round" transform="rotate(-90 20 20)"/>
+                </svg>
+                <span>圓環</span>
+            </div>
+            <div class="style-option" id="style-hourglass" onclick="setTimerStyle('hourglass')">
+                <svg viewBox="0 0 40 40" width="40" height="40" fill="currentColor" opacity="0.8">
+                    <path d="M10 6h20v2l-8 10 8 10v2H10v-2l8-10-8-10V6z" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M12 8l8 9 8-9H12z" opacity="0.6"/>
+                    <path d="M12 32l8-5 8 5H12z" opacity="0.3"/>
+                </svg>
+                <span>沙漏</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 計時設定 -->
+    <div class="settings-group">
+        <div class="settings-group-label">計時設定</div>
+        <div class="setting-row">
+            <div class="setting-info">
+                <div class="setting-title">自動進入休息</div>
+                <div class="setting-desc">專注結束或跳過後，自動開始休息計時</div>
+            </div>
+            <button class="toggle on" id="toggle-auto-break" onclick="toggleAutoBreak()"></button>
+        </div>
+        <div class="setting-row" style="margin-top:12px">
+            <div class="setting-info">
+                <div class="setting-title">自動進入專注</div>
+                <div class="setting-desc">休息結束或跳過後，自動開始專注計時</div>
+            </div>
+            <button class="toggle" id="toggle-auto-work" onclick="toggleAutoWork()"></button>
+        </div>
+        <div class="setting-row" style="margin-top:12px;margin-bottom:0">
+            <div class="setting-info">
+                <div class="setting-title">關閉休息</div>
+                <div class="setting-desc">開啟後，專注結束後不會進入休息，直接重置</div>
+            </div>
+            <button class="toggle" id="toggle-no-break" onclick="toggleNoBreak()"></button>
+        </div>
+    </div>
+
+    <!-- 背景 -->
+    <div class="settings-group">
+        <div class="settings-group-label">背景</div>
+        <div class="bg-grid" id="bg-grid"></div>
+        <input type="file" id="bg-upload" accept="image/*" style="display:none" onchange="handleUpload(event)">
+        <button class="upload-btn" onclick="document.getElementById('bg-upload').click()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            上傳自訂背景
+        </button>
+    </div>
+</div>
+
+<div class="container">
     <div class="timer-wrapper">
         <svg class="timer-svg" viewBox="0 0 290 290">
             <circle class="ring-inner"    cx="145" cy="145" r="128"/>
             <circle class="ring-bg"       cx="145" cy="145" r="133"/>
             <circle class="ring-progress" cx="145" cy="145" r="133" id="ring"/>
         </svg>
+        <!-- Hourglass SVG -->
+        <svg class="timer-hourglass" id="hourglass-svg" viewBox="0 0 290 290"
+             style="display:none;position:absolute;inset:0;width:100%;height:100%">
+            <defs>
+                <!-- Hourglass silhouette: two round globes + thin neck -->
+                <clipPath id="hg-clip">
+                    <path d="M114,38 L176,38
+                             C193,38 196,55 196,78
+                             C196,114 164,132 149,140
+                             L149,152
+                             C164,160 196,178 196,214
+                             C196,237 193,252 176,252
+                             L114,252
+                             C97,252 94,237 94,214
+                             C94,178 126,160 141,152
+                             L141,140
+                             C126,132 94,114 94,78
+                             C94,55 97,38 114,38 Z"/>
+                </clipPath>
+                <linearGradient id="sandTop" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%"   stop-color="#e8c46a"/>
+                    <stop offset="100%" stop-color="#c09030"/>
+                </linearGradient>
+                <linearGradient id="sandBot" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%"   stop-color="#c89838"/>
+                    <stop offset="100%" stop-color="#9a6e18"/>
+                </linearGradient>
+            </defs>
+
+            <!-- Glass fill -->
+            <path d="M114,38 L176,38 C193,38 196,55 196,78 C196,114 164,132 149,140 L149,152 C164,160 196,178 196,214 C196,237 193,252 176,252 L114,252 C97,252 94,237 94,214 C94,178 126,160 141,152 L141,140 C126,132 94,114 94,78 C94,55 97,38 114,38 Z"
+                  fill="rgba(255,255,255,0.06)"/>
+
+            <!-- Top sand -->
+            <rect id="hg-top-rect" x="70" y="38" width="150" height="102"
+                  fill="url(#sandTop)" clip-path="url(#hg-clip)" opacity="0.9"
+                  style="transition: y 1s linear, height 1s linear"/>
+
+            <!-- Bottom sand -->
+            <rect id="hg-bot-rect" x="70" y="252" width="150" height="0"
+                  fill="url(#sandBot)" clip-path="url(#hg-clip)" opacity="0.88"
+                  style="transition: y 1s linear, height 1s linear"/>
+
+            <!-- Glass outline -->
+            <path d="M114,38 L176,38 C193,38 196,55 196,78 C196,114 164,132 149,140 L149,152 C164,160 196,178 196,214 C196,237 193,252 176,252 L114,252 C97,252 94,237 94,214 C94,178 126,160 141,152 L141,140 C126,132 94,114 94,78 C94,55 97,38 114,38 Z"
+                  fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+
+
+            <!-- Sand particles at neck -->
+            <g id="hg-particles" style="display:none">
+                <circle class="hg-particle" cx="145"   cy="153" r="2"   fill="#d4a040"/>
+                <circle class="hg-particle" cx="143.5" cy="153" r="1.5" fill="#c89030"/>
+                <circle class="hg-particle" cx="146.5" cy="153" r="1.8" fill="#e0b050"/>
+                <circle class="hg-particle" cx="144.2" cy="153" r="1.3" fill="#d4a040"/>
+                <circle class="hg-particle" cx="145.8" cy="153" r="1.6" fill="#c89030"/>
+                <circle class="hg-particle" cx="145"   cy="153" r="1.2" fill="#e0b050"/>
+            </g>
+        </svg>
+
         <div class="timer-center" id="timer-center">
             <div class="timer-display" id="display">25:00</div>
-            <div class="timer-label"   id="mode-label">工作時間</div>
+            <div class="timer-tooltip">按著上下滑動可調整分鐘數</div>
         </div>
     </div>
 
     <div class="controls">
-        <button class="btn-secondary" onclick="resetTimer()" title="重置">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-                <polyline points="1 4 1 10 7 10"/>
-                <path d="M3.51 15a9 9 0 1 0 .49-3.85"/>
+        <button class="btn-secondary" onclick="resetTimer()" data-tip="重置">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                <polyline points="3 3 3 8 8 8"/>
             </svg>
         </button>
 
         <button class="btn-main" id="btn-play" onclick="toggleTimer()">
             <svg viewBox="0 0 24 24" id="play-svg">
-                <polygon points="6,3 20,12 6,21" fill="currentColor"/>
+                <path d="M5 4.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.78 18.99C6.529 19.677 5 18.773 5 17.347V4.653z" fill="currentColor"/>
             </svg>
+            <span id="btn-label">開始專注</span>
         </button>
 
-        <button class="btn-secondary" onclick="skipCurrent()" title="跳過">
+        <button class="btn-secondary" onclick="skipCurrent()" data-tip="跳過">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
                 <polyline points="5 4 15 12 5 20"/>
                 <line x1="19" y1="4" x2="19" y2="20"/>
@@ -365,33 +1021,63 @@
         </button>
     </div>
 
-    <div class="divider"></div>
+    <div class="bottom-btns">
+        <button class="fs-btn" id="fs-btn" onclick="toggleFullscreen()">
+            <svg id="fs-icon" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                <path d="M3 3h6v2H5v4H3V3zm12 0h6v6h-2V5h-4V3zM3 15h2v4h4v2H3v-6zm16 4h-4v2h6v-6h-2v4z"/>
+            </svg>
+            <span>全螢幕</span>
+        </button>
 
-    <div class="tomato-section">
-        <div class="count-label">今日番茄</div>
-        <div class="tomatoes" id="tomatoes">
-            <div class="tomato-slot"></div>
-            <div class="tomato-slot"></div>
-            <div class="tomato-slot"></div>
-            <div class="tomato-slot"></div>
+        <div class="mode-toggle-wrap">
+            <button class="fs-btn" onclick="toggleModeDropdown()">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                    <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14.93V15a1 1 0 0 0-2 0v1.93A8 8 0 0 1 4.07 11H6a1 1 0 0 0 0-2H4.07A8 8 0 0 1 11 4.07V6a1 1 0 0 0 2 0V4.07A8 8 0 0 1 19.93 11H18a1 1 0 0 0 0 2h1.93A8 8 0 0 1 13 16.93zM12 8a4 4 0 1 0 4 4 4 4 0 0 0-4-4zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2z"/>
+                </svg>
+                <span>計時模式</span>
+            </button>
+
+            <div class="mode-dropdown" id="mode-dropdown">
+                <div class="mode-option" id="opt-countdown" onclick="setTimerMode('countdown')">
+                    <span class="opt-check">✓</span>
+                    <div>
+                        <div class="opt-title">倒計時</div>
+                        <div class="opt-desc">從設定時間倒數至零</div>
+                    </div>
+                </div>
+                <div class="mode-option" id="opt-countup" onclick="setTimerMode('countup')">
+                    <span class="opt-check" style="opacity:0">✓</span>
+                    <div>
+                        <div class="opt-title">從零開始</div>
+                        <div class="opt-desc">從零正向計時至設定時間</div>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <button class="fs-btn" onclick="openSettings()">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                <path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7 7 0 0 0-1.62-.94l-.36-2.54A.484.484 0 0 0 14 2h-4a.484.484 0 0 0-.48.41l-.36 2.54a7.36 7.36 0 0 0-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.74 8.87a.47.47 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.04.7 1.62.94l.36 2.54c.05.24.27.41.49.41h4c.22 0 .43-.17.47-.41l.36-2.54a7.36 7.36 0 0 0 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.47.47 0 0 0-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 0 1 8.4 12 3.6 3.6 0 0 1 12 8.4 3.6 3.6 0 0 1 15.6 12 3.6 3.6 0 0 1 12 15.6z"/>
+            </svg>
+            <span>設置</span>
+        </button>
     </div>
+
 </div>
 
-<div class="status" id="status">準備開始</div>
 
 <script>
 const CIRCUMFERENCE = 2 * Math.PI * 133; // ≈ 835.66
 
 const MODES = {
-    work:  { secs: 25*60, label: '工作時間', color: '#d94535', glow: 'rgba(217,69,53,0.15)' },
-    short: { secs: 5*60,  label: '短暫休息', color: '#4a9e7f', glow: 'rgba(74,158,127,0.15)' },
-    long:  { secs: 15*60, label: '長休息',   color: '#4a7fb5', glow: 'rgba(74,127,181,0.15)' },
+    work:  { secs: 25*60, color: '#c8453b', glow: 'rgba(200,69,59,0.2)' },
+    break: { secs: 5*60,  color: '#4a8a7e', glow: 'rgba(74,138,126,0.18)' },
 };
 
 let mode      = 'work';
 let timeLeft  = MODES.work.secs;
 let total     = MODES.work.secs;
+let isBreak   = false;
 let running   = false;
 let timer     = null;
 let count     = 0;
@@ -402,12 +1088,12 @@ const display    = document.getElementById('display');
 const modeLabel  = document.getElementById('mode-label');
 const tomatoEl   = document.getElementById('tomatoes');
 const ambient    = document.getElementById('ambient');
-const statusEl   = document.getElementById('status');
 const timerCenter = document.getElementById('timer-center');
 const playSvg    = document.getElementById('play-svg');
+const btnLabel   = document.getElementById('btn-label');
 
 ring.style.strokeDasharray  = CIRCUMFERENCE;
-ring.style.strokeDashoffset = 0;
+ring.style.strokeDashoffset = -CIRCUMFERENCE;
 
 function applyColor(m) {
     const { color, glow } = MODES[m];
@@ -426,32 +1112,39 @@ function fmt(s) {
 
 function updateRing() {
     const pct = timeLeft / total;
-    ring.style.strokeDashoffset = CIRCUMFERENCE * (1 - pct);
+    ring.style.strokeDashoffset = CIRCUMFERENCE * (pct - 1);
 }
 
 function setPlayPause(playing) {
     if (playing) {
-        playSvg.innerHTML = `<rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor"/>
-                              <rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor"/>`;
+        playSvg.innerHTML = `<rect x="5" y="4" width="4" height="16" rx="2" fill="currentColor"/>
+                              <rect x="15" y="4" width="4" height="16" rx="2" fill="currentColor"/>`;
+        btnLabel.textContent = '暫停';
     } else {
-        playSvg.innerHTML = `<polygon points="6,3 20,12 6,21" fill="currentColor"/>`;
+        playSvg.innerHTML = `<path d="M5 4.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.78 18.99C6.529 19.677 5 18.773 5 17.347V4.653z" fill="currentColor"/>`;
+        const paused = timeLeft < total;
+        if (paused) {
+            btnLabel.textContent = '繼續';
+        } else {
+            btnLabel.textContent = mode === 'work' ? '開始專注' : '開始休息';
+        }
     }
 }
 
 function setMode(m) {
     stop();
     mode     = m;
+    isBreak  = m === 'break';
     timeLeft = MODES[m].secs;
     total    = MODES[m].secs;
-    display.textContent   = fmt(timeLeft);
-    modeLabel.textContent = MODES[m].label;
+    elapsed  = 0;
+    document.getElementById('display').textContent = fmt(timeLeft);
     updateRing();
     applyColor(m);
     setPlayPause(false);
-    statusEl.textContent = '準備開始';
+    btnLabel.textContent = isBreak ? '開始休息' : '開始專注';
     timerCenter.classList.remove('ticking');
-    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(`btn-${m}`).classList.add('active');
+    timerCenter.classList.remove('running');
 }
 
 function toggleTimer() {
@@ -460,66 +1153,125 @@ function toggleTimer() {
 
 function start() {
     running = true;
+    document.body.classList.add('timer-running');
     setPlayPause(true);
     timerCenter.classList.add('ticking');
-    statusEl.textContent = mode === 'work' ? '專注中...' : '休息中...';
+    timerCenter.classList.add('running');
+    timerCenter.classList.add('started');
+    document.getElementById('hourglass-svg').classList.remove('paused');
+
+    // Sweep-in animation: ring draws from hidden to current progress position
+    const targetOffset = timerMode === 'countup'
+        ? -CIRCUMFERENCE
+        : CIRCUMFERENCE * (timeLeft / total - 1);
+    ring.style.transition = 'none';
+    ring.style.strokeDashoffset = -CIRCUMFERENCE;
+    ring.classList.remove('ring-pulse');
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            ring.style.transition = 'stroke-dashoffset 0.75s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.8s ease, filter 0.8s ease';
+            ring.style.strokeDashoffset = targetOffset;
+            ring.classList.add('ring-pulse');
+            setTimeout(() => {
+                ring.classList.remove('ring-pulse');
+                ring.style.transition = 'stroke-dashoffset 1s linear, stroke 0.8s ease, filter 0.8s ease';
+            }, 800);
+        });
+    });
+
+    if (timerMode === 'countup') {
+        elapsed = 0;
+        document.getElementById('display').textContent = fmt(0);
+    }
     timer = setInterval(tick, 1000);
 }
 
 function stop() {
     running = false;
+    document.body.classList.remove('timer-running');
     clearInterval(timer);
     setPlayPause(false);
     timerCenter.classList.remove('ticking');
-    if (timeLeft < total) statusEl.textContent = '已暫停';
+    timerCenter.classList.remove('running');
+    document.getElementById('hg-particles').style.display = 'none';
 }
 
 function tick() {
-    if (timeLeft <= 0) {
-        clearInterval(timer);
-        running = false;
-        setPlayPause(false);
-        timerCenter.classList.remove('ticking');
-        onEnd();
-        return;
+    if (timerMode === 'countup') {
+        elapsed++;
+        document.getElementById('display').textContent = fmt(elapsed);
+        const pct = Math.min(elapsed / total, 1);
+        ring.style.strokeDashoffset = CIRCUMFERENCE * (pct - 1);
+        if (elapsed >= total) {
+            clearInterval(timer);
+            running = false;
+            setPlayPause(false);
+            timerCenter.classList.remove('ticking');
+    timerCenter.classList.remove('running');
+            onEnd();
+        }
+    } else {
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            running = false;
+            setPlayPause(false);
+            timerCenter.classList.remove('ticking');
+    timerCenter.classList.remove('running');
+            onEnd();
+            return;
+        }
+        timeLeft--;
+        document.getElementById('display').textContent = fmt(timeLeft);
+        updateRing();
+        updateHourglass();
     }
-    timeLeft--;
-    display.textContent = fmt(timeLeft);
-    updateRing();
 }
 
 function resetTimer() {
     stop();
+    elapsed  = 0;
     timeLeft = total;
-    display.textContent = fmt(timeLeft);
+    document.getElementById('display').textContent = fmt(timeLeft);
     updateRing();
-    statusEl.textContent = '準備開始';
+    timerCenter.classList.remove('started');
 }
 
 function skipCurrent() {
     stop();
-    if (mode === 'work') {
-        const next = (count % 4 === 3) ? 'long' : 'short';
-        setMode(next);
-    } else {
-        setMode('work');
-    }
+    if (mode === 'work' && noBreak) { setMode('work'); return; }
+    const next = mode === 'work' ? 'break' : 'work';
+    setMode(next);
+    if (mode === 'break' && autoBreak) start();
+    if (mode === 'work'  && autoWork)  start();
+}
+
+let autoBreak = true;
+let autoWork  = false;
+
+function toggleAutoBreak() {
+    autoBreak = !autoBreak;
+    document.getElementById('toggle-auto-break').classList.toggle('on', autoBreak);
+}
+function toggleAutoWork() {
+    autoWork = !autoWork;
+    document.getElementById('toggle-auto-work').classList.toggle('on', autoWork);
+}
+
+let noBreak = false;
+function toggleNoBreak() {
+    noBreak = !noBreak;
+    document.getElementById('toggle-no-break').classList.toggle('on', noBreak);
 }
 
 function onEnd() {
     playChime();
-    if (mode === 'work') {
-        count++;
-        renderTomatoes();
-        statusEl.textContent = `第 ${count} 個番茄完成！`;
-        setTimeout(() => {
-            const next = (count % 4 === 0) ? 'long' : 'short';
-            setMode(next);
-            statusEl.textContent = '休息一下';
-        }, 2200);
+    if (mode === 'work' && noBreak) { setTimeout(() => { setMode('work'); }, 2000); return; }
+    const next = mode === 'work' ? 'break' : 'work';
+    const shouldAuto = mode === 'work' ? autoBreak : autoWork;
+    if (shouldAuto) {
+        setTimeout(() => { setMode(next); start(); }, 2000);
     } else {
-        statusEl.textContent = '休息結束，繼續加油！';
-        setTimeout(() => setMode('work'), 2200);
+        setTimeout(() => setMode(next), 2000);
     }
 }
 
@@ -565,8 +1317,241 @@ function playChime() {
     } catch(e) {}
 }
 
+// ── Drag to adjust minutes ────────────────────────────
+(function () {
+    let dragStartY = null;
+    let dragStartMins = null;
+    let isDragging = false;
+
+    function getDisp() { return document.getElementById('display'); }
+
+    function onStart(e) {
+        if (running || timeLeft < total) return;
+        dragStartY    = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+        dragStartMins = Math.round(timeLeft / 60) || 1;
+        isDragging    = false;
+        getDisp().classList.add('dragging');
+        e.preventDefault();
+    }
+
+    function onMove(e) {
+        if (dragStartY === null) return;
+        const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+        const delta   = dragStartY - clientY;        // up = positive
+        if (Math.abs(delta) > 4) isDragging = true;
+        const newMins = Math.min(Math.max(dragStartMins + Math.round(delta / 6), 1), 99);
+        timeLeft = newMins * 60;
+        total    = newMins * 60;
+        getDisp().textContent = fmt(timeLeft);
+        updateRing();
+        e.preventDefault();
+    }
+
+    function onEnd() {
+        dragStartY = null;
+        getDisp().classList.remove('dragging');
+    }
+
+    const disp = document.getElementById('display');
+    disp.addEventListener('mousedown',  onStart, { passive: false });
+    disp.addEventListener('touchstart', onStart, { passive: false });
+    window.addEventListener('mousemove',  onMove, { passive: false });
+    window.addEventListener('touchmove',  onMove, { passive: false });
+    window.addEventListener('mouseup',  onEnd);
+    window.addEventListener('touchend', onEnd);
+})();
+
 // Init
 applyColor('work');
+
+// ── Settings & Background ─────────────────────────────
+const BACKGROUNDS = [
+    { id: 'default',  label: '預設',  url: null, thumb: null },
+    { id: 'forest',   label: '森林',  url: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=1920&q=80', thumb: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=300&q=60' },
+    { id: 'ocean',    label: '大海',  url: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1920&q=80', thumb: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=300&q=60' },
+    { id: 'mountain', label: '山峰',  url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80', thumb: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=300&q=60' },
+    { id: 'starry',   label: '星空',  url: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=1920&q=80', thumb: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=300&q=60' },
+    { id: 'sakura',   label: '花田',  url: 'https://images.unsplash.com/photo-1522383225653-ed111181a951?w=1920&q=80', thumb: 'https://images.unsplash.com/photo-1522383225653-ed111181a951?w=300&q=60' },
+];
+
+let currentBg = 'default';
+const bgOverlay = document.getElementById('bg-overlay');
+
+function openSettings() {
+    document.getElementById('settings-panel').classList.add('open');
+    document.getElementById('settings-overlay').classList.add('open');
+}
+
+function closeSettings() {
+    document.getElementById('settings-panel').classList.remove('open');
+    document.getElementById('settings-overlay').classList.remove('open');
+}
+
+function setBg(id) {
+    currentBg = id;
+    const bg = BACKGROUNDS.find(b => b.id === id);
+    if (bg.url) {
+        document.body.style.backgroundImage = `url('${bg.url}')`;
+        bgOverlay.classList.add('visible');
+    } else {
+        document.body.style.backgroundImage = '';
+        bgOverlay.classList.remove('visible');
+    }
+    document.querySelectorAll('.bg-option').forEach(el => {
+        el.classList.toggle('selected', el.dataset.id === id);
+    });
+}
+
+function renderBgGrid() {
+    const grid = document.getElementById('bg-grid');
+    grid.innerHTML = '';
+    BACKGROUNDS.forEach(bg => {
+        const el = document.createElement('div');
+        el.className = `bg-option${currentBg === bg.id ? ' selected' : ''}`;
+        el.dataset.id = bg.id;
+        el.onclick = () => setBg(bg.id);
+        if (bg.thumb) {
+            el.innerHTML = `<img src="${bg.thumb}" alt="${bg.label}" loading="lazy">
+                            <div class="bg-label">${bg.label}</div>`;
+        } else {
+            el.innerHTML = `<div class="bg-default-box">預設</div>`;
+        }
+        grid.appendChild(el);
+    });
+}
+
+renderBgGrid();
+
+// ── Custom background upload ───────────────────────────
+let customBgUrl = null;
+
+function handleUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (customBgUrl) URL.revokeObjectURL(customBgUrl);
+    customBgUrl = URL.createObjectURL(file);
+    setBg('custom');
+    renderBgGrid();
+    e.target.value = '';
+}
+
+const _origRenderBgGrid = renderBgGrid;
+renderBgGrid = function() {
+    const grid = document.getElementById('bg-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    const list = customBgUrl
+        ? [...BACKGROUNDS, { id: 'custom', label: '自訂', url: customBgUrl, thumb: customBgUrl }]
+        : BACKGROUNDS;
+    list.forEach(bg => {
+        const el = document.createElement('div');
+        el.className = `bg-option${currentBg === bg.id ? ' selected' : ''}`;
+        el.dataset.id = bg.id;
+        el.onclick = () => { setBg(bg.id); renderBgGrid(); };
+        if (bg.thumb) {
+            el.innerHTML = `<img src="${bg.thumb}" alt="${bg.label}" loading="lazy"><div class="bg-label">${bg.label}</div>`;
+        } else {
+            el.innerHTML = `<div class="bg-default-box">預設</div>`;
+        }
+        grid.appendChild(el);
+    });
+};
+
+// ── Timer Style (ring / hourglass) ────────────────────
+let timerStyle = 'ring';
+
+function setTimerStyle(s) {
+    timerStyle = s;
+    document.getElementById('hourglass-svg').style.display = s === 'hourglass' ? 'block' : 'none';
+    document.querySelector('.container').classList.toggle('hourglass-active', s === 'hourglass');
+    // Ring SVG always visible (provides outer progress arc); hide bg+inner circles in hourglass mode
+    const ringBg = document.querySelector('.ring-bg');
+    if (s === 'hourglass') {
+        ringBg.style.stroke      = 'rgba(232, 224, 213, 0.18)';
+        ringBg.style.strokeWidth = '1.5';
+        ringBg.style.opacity     = '';
+    } else {
+        ringBg.style.stroke      = '';
+        ringBg.style.strokeWidth = '';
+        ringBg.style.opacity     = '';
+    }
+    document.querySelector('.ring-inner').style.display = s === 'ring' ? '' : 'none';
+    document.getElementById('style-ring').classList.toggle('active', s === 'ring');
+    document.getElementById('style-hourglass').classList.toggle('active', s === 'hourglass');
+    updateHourglass();
+}
+
+function updateHourglass() {
+    if (timerStyle !== 'hourglass') return;
+    const p = timerMode === 'countup'
+        ? Math.max(1 - elapsed / total, 0)
+        : Math.max(timeLeft / total, 0);
+
+    // Top sand: drains from y=38 to neck top y=140
+    const topStart = 38, topNeck = 140, topH = topNeck - topStart; // 102
+    const topRect = document.getElementById('hg-top-rect');
+    topRect.setAttribute('y', topStart + topH * (1 - p));
+    topRect.setAttribute('height', Math.max(topH * p, 0));
+
+    // Bottom sand: accumulates from y=252 up to neck bottom y=152
+    const botNeck = 152, botEnd = 252, botH = botEnd - botNeck; // 100
+    const sandBotH = botH * (1 - p);
+    const botRect = document.getElementById('hg-bot-rect');
+    botRect.setAttribute('y', botEnd - sandBotH);
+    botRect.setAttribute('height', Math.max(sandBotH, 0));
+
+    // Particles: only when running
+    document.getElementById('hg-particles').style.display =
+        (running && p > 0.02) ? 'block' : 'none';
+}
+
+// ── Timer Mode (countdown / countup) ──────────────────
+let timerMode = 'countdown';
+let elapsed   = 0;
+
+function toggleModeDropdown() {
+    document.getElementById('mode-dropdown').classList.toggle('open');
+}
+
+document.addEventListener('click', e => {
+    const wrap = document.querySelector('.mode-toggle-wrap');
+    if (wrap && !wrap.contains(e.target)) {
+        document.getElementById('mode-dropdown').classList.remove('open');
+    }
+});
+
+function setTimerMode(m) {
+    timerMode = m;
+    stop();
+    elapsed  = 0;
+    timeLeft = total;
+    document.getElementById('display').textContent = fmt(timeLeft);
+    updateRing();
+    document.getElementById('opt-countdown').querySelector('.opt-check').style.opacity = m === 'countdown' ? '1' : '0';
+    document.getElementById('opt-countup').querySelector('.opt-check').style.opacity   = m === 'countup'   ? '1' : '0';
+    document.getElementById('mode-dropdown').classList.remove('open');
+}
+
+// ── Fullscreen ─────────────────────────────────────────
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+    } else {
+        document.exitFullscreen();
+    }
+}
+
+document.addEventListener('fullscreenchange', () => {
+    const icon  = document.getElementById('fs-icon');
+    const label = document.querySelector('#fs-btn span');
+    if (document.fullscreenElement) {
+        icon.innerHTML = `<polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="10" y1="14" x2="3" y2="21"/><line x1="21" y1="3" x2="14" y2="10"/>`;
+        label.textContent = '退出全螢幕';
+    } else {
+        icon.innerHTML = `<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>`;
+        label.textContent = '全螢幕';
+    }
+});
 </script>
 </body>
 </html>
