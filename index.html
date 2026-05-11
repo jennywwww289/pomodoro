@@ -204,6 +204,9 @@
             color: var(--text);
             transition: opacity 0.3s, color 0.3s;
             cursor: pointer;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            transform: translateZ(0);
         }
 
         .timer-display:hover {
@@ -416,13 +419,13 @@
             animation: ringPulse 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
 
-        /* Tick animation — use scale on wrapper to avoid iOS text-ghost */
+        /* Tick animation — scale on container avoids iOS text ghost on opacity */
         @keyframes tickPulse {
             0%, 100% { transform: scale(1); }
             50%       { transform: scale(0.988); }
         }
 
-        .ticking .timer-center {
+        .timer-center.ticking {
             animation: tickPulse 2.5s ease-in-out infinite;
         }
 
@@ -1092,7 +1095,7 @@ const playSvg    = document.getElementById('play-svg');
 const btnLabel   = document.getElementById('btn-label');
 
 ring.style.strokeDasharray  = CIRCUMFERENCE;
-ring.style.strokeDashoffset = -CIRCUMFERENCE;
+ring.style.strokeDashoffset = CIRCUMFERENCE;
 
 function applyColor(m) {
     const { color, glow } = MODES[m];
@@ -1111,7 +1114,7 @@ function fmt(s) {
 
 function updateRing() {
     const pct = timeLeft / total;
-    ring.style.strokeDashoffset = CIRCUMFERENCE * (pct - 1);
+    ring.style.strokeDashoffset = CIRCUMFERENCE * (1 - pct);
 }
 
 function setPlayPause(playing) {
@@ -1160,11 +1163,12 @@ function start() {
     document.getElementById('hourglass-svg').classList.remove('paused');
 
     // Sweep-in animation: ring draws from hidden to current progress position
+    // Use positive dashoffset only — iOS Safari does not support negative stroke-dashoffset
     const targetOffset = timerMode === 'countup'
-        ? -CIRCUMFERENCE
-        : CIRCUMFERENCE * (timeLeft / total - 1);
+        ? CIRCUMFERENCE
+        : CIRCUMFERENCE * (1 - timeLeft / total);
     ring.style.transition = 'none';
-    ring.style.strokeDashoffset = -CIRCUMFERENCE;
+    ring.style.strokeDashoffset = CIRCUMFERENCE;
     ring.classList.remove('ring-pulse');
     // getBoundingClientRect forces a synchronous reflow — more reliable than double-rAF on iOS Safari
     void ring.getBoundingClientRect();
@@ -1198,7 +1202,7 @@ function tick() {
         elapsed++;
         document.getElementById('display').textContent = fmt(elapsed);
         const pct = Math.min(elapsed / total, 1);
-        ring.style.strokeDashoffset = CIRCUMFERENCE * (pct - 1);
+        ring.style.strokeDashoffset = CIRCUMFERENCE * (1 - pct);
         if (elapsed >= total) {
             clearInterval(timer);
             running = false;
