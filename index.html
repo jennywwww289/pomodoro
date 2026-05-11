@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>番茄鐘</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Noto+Sans+TC:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0c0b0a;
+            --current-color: #d94535;
+            --current-glow: rgba(217, 69, 53, 0.15);
+            --text: #e8e0d5;
+            --text-dim: rgba(232, 224, 213, 0.4);
+            --text-muted: rgba(232, 224, 213, 0.18);
+            --border: rgba(232, 224, 213, 0.08);
+            --ring-bg: rgba(232, 224, 213, 0.05);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body { height: 100%; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Noto Sans TC', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Grain texture */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        .ambient {
+            position: fixed;
+            width: 700px;
+            height: 700px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--current-glow) 0%, transparent 65%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            transition: background 1.2s ease;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 1;
+        }
+
+        /* Wordmark */
+        .wordmark {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 11px;
+            font-weight: 300;
+            letter-spacing: 0.55em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+        }
+
+        /* Mode selector */
+        .mode-selector {
+            display: flex;
+            gap: 0;
+            margin-bottom: 52px;
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .mode-btn {
+            padding: 9px 22px;
+            background: transparent;
+            border: none;
+            border-right: 1px solid var(--border);
+            color: var(--text-dim);
+            font-family: 'Noto Sans TC', sans-serif;
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            cursor: pointer;
+            transition: all 0.35s ease;
+            white-space: nowrap;
+        }
+
+        .mode-btn:last-child { border-right: none; }
+
+        .mode-btn.active {
+            background: var(--current-color);
+            color: #fff;
+        }
+
+        .mode-btn:not(.active):hover {
+            color: var(--text);
+            background: rgba(255,255,255,0.04);
+        }
+
+        /* Timer ring */
+        .timer-wrapper {
+            position: relative;
+            width: 290px;
+            height: 290px;
+            margin-bottom: 48px;
+        }
+
+        .timer-svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .ring-bg {
+            fill: none;
+            stroke: var(--ring-bg);
+            stroke-width: 1.5;
+        }
+
+        .ring-progress {
+            fill: none;
+            stroke: var(--current-color);
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-dasharray: 838.05;
+            stroke-dashoffset: 0;
+            transition: stroke-dashoffset 1s linear, stroke 0.8s ease, filter 0.8s ease;
+            filter: drop-shadow(0 0 8px var(--current-color));
+        }
+
+        /* subtle inner glow circle */
+        .ring-inner {
+            fill: none;
+            stroke: var(--current-color);
+            stroke-width: 0.5;
+            opacity: 0.12;
+            transition: stroke 0.8s ease;
+        }
+
+        .timer-center {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .timer-display {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 76px;
+            font-weight: 300;
+            letter-spacing: -0.03em;
+            line-height: 1;
+            color: var(--text);
+            transition: opacity 0.3s;
+        }
+
+        .timer-label {
+            font-size: 10px;
+            letter-spacing: 0.3em;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 52px;
+        }
+
+        .btn-main {
+            width: 62px;
+            height: 62px;
+            border-radius: 50%;
+            border: 1px solid var(--current-color);
+            background: transparent;
+            color: var(--current-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .btn-main:hover {
+            background: var(--current-color);
+            color: #fff;
+            box-shadow: 0 0 28px var(--current-glow);
+        }
+
+        .btn-main svg { width: 22px; height: 22px; }
+
+        .btn-secondary {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-dim);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            border-color: rgba(232,224,213,0.3);
+            color: var(--text);
+        }
+
+        .btn-secondary svg { width: 15px; height: 15px; }
+
+        /* Divider */
+        .divider {
+            width: 40px;
+            height: 1px;
+            background: var(--border);
+            margin-bottom: 28px;
+        }
+
+        /* Tomato count */
+        .tomato-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .count-label {
+            font-size: 10px;
+            letter-spacing: 0.35em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .tomatoes {
+            display: flex;
+            gap: 7px;
+            align-items: center;
+            min-height: 18px;
+        }
+
+        .tomato-icon {
+            width: 14px;
+            height: 13px;
+            border-radius: 50% 50% 50% 50% / 58% 58% 42% 42%;
+            background: #d94535;
+            position: relative;
+            animation: popIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        .tomato-icon::before {
+            content: '';
+            position: absolute;
+            width: 2px;
+            height: 5px;
+            background: #3d7a2e;
+            border-radius: 1px;
+            top: -4px;
+            left: 50%;
+            transform: translateX(-50%) rotate(8deg);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0) rotate(-15deg); opacity: 0; }
+            to   { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .tomato-slot {
+            width: 14px;
+            height: 13px;
+            border-radius: 50% 50% 50% 50% / 58% 58% 42% 42%;
+            border: 1px solid var(--border);
+        }
+
+        /* Status bar */
+        .status {
+            position: fixed;
+            bottom: 28px;
+            font-size: 10px;
+            letter-spacing: 0.25em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            transition: opacity 0.5s;
+        }
+
+        /* Tick animation */
+        @keyframes tickPulse {
+            0%   { opacity: 1; }
+            50%  { opacity: 0.75; }
+            100% { opacity: 1; }
+        }
+
+        .ticking .timer-display {
+            animation: tickPulse 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+
+<div class="ambient" id="ambient"></div>
+
+<div class="container">
+    <div class="wordmark">番茄鐘 · Pomodoro</div>
+
+    <div class="mode-selector">
+        <button class="mode-btn active" id="btn-work"  onclick="setMode('work')">專注 25'</button>
+        <button class="mode-btn"        id="btn-short" onclick="setMode('short')">短休 5'</button>
+        <button class="mode-btn"        id="btn-long"  onclick="setMode('long')">長休 15'</button>
+    </div>
+
+    <div class="timer-wrapper">
+        <svg class="timer-svg" viewBox="0 0 290 290">
+            <circle class="ring-inner"    cx="145" cy="145" r="128"/>
+            <circle class="ring-bg"       cx="145" cy="145" r="133"/>
+            <circle class="ring-progress" cx="145" cy="145" r="133" id="ring"/>
+        </svg>
+        <div class="timer-center" id="timer-center">
+            <div class="timer-display" id="display">25:00</div>
+            <div class="timer-label"   id="mode-label">工作時間</div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-secondary" onclick="resetTimer()" title="重置">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                <polyline points="1 4 1 10 7 10"/>
+                <path d="M3.51 15a9 9 0 1 0 .49-3.85"/>
+            </svg>
+        </button>
+
+        <button class="btn-main" id="btn-play" onclick="toggleTimer()">
+            <svg viewBox="0 0 24 24" id="play-svg">
+                <polygon points="6,3 20,12 6,21" fill="currentColor"/>
+            </svg>
+        </button>
+
+        <button class="btn-secondary" onclick="skipCurrent()" title="跳過">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                <polyline points="5 4 15 12 5 20"/>
+                <line x1="19" y1="4" x2="19" y2="20"/>
+            </svg>
+        </button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="tomato-section">
+        <div class="count-label">今日番茄</div>
+        <div class="tomatoes" id="tomatoes">
+            <div class="tomato-slot"></div>
+            <div class="tomato-slot"></div>
+            <div class="tomato-slot"></div>
+            <div class="tomato-slot"></div>
+        </div>
+    </div>
+</div>
+
+<div class="status" id="status">準備開始</div>
+
+<script>
+const CIRCUMFERENCE = 2 * Math.PI * 133; // ≈ 835.66
+
+const MODES = {
+    work:  { secs: 25*60, label: '工作時間', color: '#d94535', glow: 'rgba(217,69,53,0.15)' },
+    short: { secs: 5*60,  label: '短暫休息', color: '#4a9e7f', glow: 'rgba(74,158,127,0.15)' },
+    long:  { secs: 15*60, label: '長休息',   color: '#4a7fb5', glow: 'rgba(74,127,181,0.15)' },
+};
+
+let mode      = 'work';
+let timeLeft  = MODES.work.secs;
+let total     = MODES.work.secs;
+let running   = false;
+let timer     = null;
+let count     = 0;
+
+const ring       = document.getElementById('ring');
+const ringInner  = document.querySelector('.ring-inner');
+const display    = document.getElementById('display');
+const modeLabel  = document.getElementById('mode-label');
+const tomatoEl   = document.getElementById('tomatoes');
+const ambient    = document.getElementById('ambient');
+const statusEl   = document.getElementById('status');
+const timerCenter = document.getElementById('timer-center');
+const playSvg    = document.getElementById('play-svg');
+
+ring.style.strokeDasharray  = CIRCUMFERENCE;
+ring.style.strokeDashoffset = 0;
+
+function applyColor(m) {
+    const { color, glow } = MODES[m];
+    document.documentElement.style.setProperty('--current-color', color);
+    document.documentElement.style.setProperty('--current-glow', glow);
+    ambient.style.background = `radial-gradient(circle, ${glow} 0%, transparent 65%)`;
+    ring.style.stroke        = color;
+    ring.style.filter        = `drop-shadow(0 0 8px ${color})`;
+    ringInner.style.stroke   = color;
+}
+
+function fmt(s) {
+    const m = Math.floor(s / 60), sec = s % 60;
+    return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+
+function updateRing() {
+    const pct = timeLeft / total;
+    ring.style.strokeDashoffset = CIRCUMFERENCE * (1 - pct);
+}
+
+function setPlayPause(playing) {
+    if (playing) {
+        playSvg.innerHTML = `<rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor"/>
+                              <rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor"/>`;
+    } else {
+        playSvg.innerHTML = `<polygon points="6,3 20,12 6,21" fill="currentColor"/>`;
+    }
+}
+
+function setMode(m) {
+    stop();
+    mode     = m;
+    timeLeft = MODES[m].secs;
+    total    = MODES[m].secs;
+    display.textContent   = fmt(timeLeft);
+    modeLabel.textContent = MODES[m].label;
+    updateRing();
+    applyColor(m);
+    setPlayPause(false);
+    statusEl.textContent = '準備開始';
+    timerCenter.classList.remove('ticking');
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`btn-${m}`).classList.add('active');
+}
+
+function toggleTimer() {
+    running ? stop() : start();
+}
+
+function start() {
+    running = true;
+    setPlayPause(true);
+    timerCenter.classList.add('ticking');
+    statusEl.textContent = mode === 'work' ? '專注中...' : '休息中...';
+    timer = setInterval(tick, 1000);
+}
+
+function stop() {
+    running = false;
+    clearInterval(timer);
+    setPlayPause(false);
+    timerCenter.classList.remove('ticking');
+    if (timeLeft < total) statusEl.textContent = '已暫停';
+}
+
+function tick() {
+    if (timeLeft <= 0) {
+        clearInterval(timer);
+        running = false;
+        setPlayPause(false);
+        timerCenter.classList.remove('ticking');
+        onEnd();
+        return;
+    }
+    timeLeft--;
+    display.textContent = fmt(timeLeft);
+    updateRing();
+}
+
+function resetTimer() {
+    stop();
+    timeLeft = total;
+    display.textContent = fmt(timeLeft);
+    updateRing();
+    statusEl.textContent = '準備開始';
+}
+
+function skipCurrent() {
+    stop();
+    if (mode === 'work') {
+        const next = (count % 4 === 3) ? 'long' : 'short';
+        setMode(next);
+    } else {
+        setMode('work');
+    }
+}
+
+function onEnd() {
+    playChime();
+    if (mode === 'work') {
+        count++;
+        renderTomatoes();
+        statusEl.textContent = `第 ${count} 個番茄完成！`;
+        setTimeout(() => {
+            const next = (count % 4 === 0) ? 'long' : 'short';
+            setMode(next);
+            statusEl.textContent = '休息一下';
+        }, 2200);
+    } else {
+        statusEl.textContent = '休息結束，繼續加油！';
+        setTimeout(() => setMode('work'), 2200);
+    }
+}
+
+function renderTomatoes() {
+    tomatoEl.innerHTML = '';
+    const show = Math.min(count, 8);
+    for (let i = 0; i < show; i++) {
+        const t = document.createElement('div');
+        t.className = 'tomato-icon';
+        t.style.animationDelay = `${i * 35}ms`;
+        tomatoEl.appendChild(t);
+    }
+    // fill empty slots up to 4
+    const slots = Math.max(4 - show, 0);
+    for (let i = 0; i < slots; i++) {
+        const s = document.createElement('div');
+        s.className = 'tomato-slot';
+        tomatoEl.appendChild(s);
+    }
+    if (count > 8) {
+        const more = document.createElement('span');
+        more.style.cssText = 'font-size:10px;color:var(--text-dim);letter-spacing:.08em;margin-left:2px;';
+        more.textContent = `+${count - 8}`;
+        tomatoEl.appendChild(more);
+    }
+}
+
+function playChime() {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        [[523.25,0],[659.25,.2],[783.99,.4],[1046.5,.62]].forEach(([f, t]) => {
+            const osc  = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(f, ctx.currentTime + t);
+            gain.gain.setValueAtTime(0, ctx.currentTime + t);
+            gain.gain.linearRampToValueAtTime(0.28, ctx.currentTime + t + 0.025);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.55);
+            osc.start(ctx.currentTime + t);
+            osc.stop(ctx.currentTime + t + 0.6);
+        });
+    } catch(e) {}
+}
+
+// Init
+applyColor('work');
+</script>
+</body>
+</html>
